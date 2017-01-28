@@ -55,6 +55,14 @@ must be a boolean ; if it is set to `True` the attribute is set, if it is
 <option attrs="selected=value==expected"/>
 ```
 
+Including templates
+-------------------
+A template can be included inside another one :
+
+```xml
+<py include="header.html"/>
+```
+
 Using the patrom module
 =======================
 
@@ -79,11 +87,14 @@ For instance, if the template file __hello.html__ is
 Hello <py expr="name"/> !
 ```
 
-rendering it with
+the result of
 ```python
 patrom.render("hello.html", name="World")
 ```
-prints
+is
 ```
 Hello World !
 ```
+
+If a template includes another one, the included template is rendered with the
+same keys / values.
