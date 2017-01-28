@@ -2,6 +2,9 @@
 
 patrom is a web templating system, with Python code inserted inside HTML pages.
 
+Templates syntax
+================
+
 The engine uses the custom HTML tag `<py>`, and a custom HTML attribute `attrs`.
 
 To insert a block of code, for instance a `for` loop or a condition, the 
@@ -50,4 +53,37 @@ must be a boolean ; if it is set to `True` the attribute is set, if it is
 
 ```xml
 <option attrs="selected=value==expected"/>
+```
+
+Using the patrom module
+=======================
+
+Installation
+------------
+```
+pip install patrom
+```
+
+Rendering templates
+-------------------
+```python
+import patrom
+patrom.render(filename, **kw)
+```
+renders the template file at location `filename` with the keyword arguments
+`kw`. The keys in `kw` are used as the namespace for the template.
+
+For instance, if the template file __hello.html__ is
+
+```xml
+Hello <py expr="name"/> !
+```
+
+rendering it with
+```python
+patrom.render("hello.html", name="World")
+```
+prints
+```
+Hello World !
 ```
