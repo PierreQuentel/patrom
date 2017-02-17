@@ -52,12 +52,15 @@ class TemplateParser(html.parser.HTMLParser):
         """Control that Python source code doesn't include sensible
         names"""
         reader = io.BytesIO(source.encode('utf-8')).readline
-        for tok_type, tok, *args in tokenize.tokenize(reader):
-            if tok_type == tokenize.NAME:
-                if tok in self.forbidden:
-                    msg = 'forbidden name "{}"'
-                    raise TemplateError(msg.format(tok), self, text)
-        
+        try:
+            for tok_type, tok, *args in tokenize.tokenize(reader):
+                if tok_type == tokenize.NAME:
+                    if tok in self.forbidden:
+                        msg = 'forbidden name "{}"'
+                        raise TemplateError(msg.format(tok), self, text)
+        except tokenize.TokenError as exc:
+            raise TemplateError("tokenize error {}".format(exc), self, text)
+
     def handle_starttag(self, tag, attrs):
         """Handle a start tag
         If tag is PY_TAG :
