@@ -7,12 +7,14 @@ Templates syntax
 
 The engine uses the custom HTML tag `<py>`, and a custom HTML attribute `attrs`.
 
+Code blocks
+-----------
 To insert a block of code, for instance a `for` loop or a condition, the 
 syntax is :
 
 ```xml
 <py code="for i in range(10):">
-   ...
+   ... code block ...
 </py>
 ```
 
@@ -24,8 +26,10 @@ syntax is :
 </py><py code="elif condition2:">
   ...
 </py>
-```
 
+```
+Statements
+----------
 For a statement, also use the attribute `code` inside a "start/end" tag, ie
 a tag that ends with `/>` :
 
@@ -40,6 +44,8 @@ To insert the result of an expression, use the attribute `expr` of tag `<py>`:
 <py expr="'red' if condition else 'blue'"/>
 ```
 
+Tag attributes
+--------------
 To set attributes of other HTML tags, set an attribute `attrs` holding key /
 value pairs as in keyword arguments of Python functions :
 
