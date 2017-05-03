@@ -38,6 +38,7 @@ class TemplateParser(html.parser.HTMLParser):
         self.py_tags = [] # stack of Python blocks
         self.pyline = 0 # line number in generated Python code
         self.line_mapping = {} # maps Python line num to template line num
+        self.tag_stack = []
 
     def _randname(self):
         return ''.join(random.choice(string.ascii_letters) for i in range(8))
@@ -49,8 +50,7 @@ class TemplateParser(html.parser.HTMLParser):
         self.line_mapping[self.pyline] = (line, column, text)
     
     def control(self, source, text):
-        """Control that Python source code doesn't include sensible
-        names"""
+        """Control that Python source code doesn't include sensible names"""
         reader = io.BytesIO(source.encode('utf-8')).readline
         try:
             for tok_type, tok, *args in tokenize.tokenize(reader):
@@ -69,6 +69,7 @@ class TemplateParser(html.parser.HTMLParser):
 
         Else print the tag, formatted by method _format()
         """
+        self.tag_stack.append(tag)
         text = self.get_starttag_text()
         line, column = self.getpos()
         if tag == self.PY_TAG:
@@ -139,6 +140,8 @@ class TemplateParser(html.parser.HTMLParser):
             self.handle_attrs(tag, attrs, text)
 
     def handle_endtag(self, tag):
+        if self.tag_stack:
+            self.tag_stack.pop()
         text = '</{}>'.format(tag)
         if tag == self.PY_TAG:
             if not self.py_tags:
@@ -153,7 +156,10 @@ class TemplateParser(html.parser.HTMLParser):
     def handle_data(self, data):
         """Data is printed unchanged"""
         if data.strip():
-            self.add('print("""{}""", end="")'.format(data), data)     
+            if not self.tag_stack or self.tag_stack[-1].lower() != "script":
+                data = data.replace('"', "&quot;")
+            s = 'print("""{}""", end="")'.format(data)
+            self.add(s, data)
 
     def handle_decl(self, decl):
         """Declaration is printed unchanged"""
