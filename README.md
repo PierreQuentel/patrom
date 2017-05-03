@@ -34,23 +34,23 @@ For a statement, also use the attribute `code` inside a "start/end" tag, ie
 a tag that ends with `/>` :
 
 ```xml
-<py code="x = 5"/>
+<py code="x = 5" />
 ```
 
-To insert the result of an expression, use the attribute `expr` of tag `<py>`:
+To insert the result of an expression, use the attribute `expr`:
 
 ```xml
-<py expr="month"/>
-<py expr="'red' if condition else 'blue'"/>
+<py expr="month" />
+<py expr="'red' if condition else 'blue'" />
 ```
 
 Tag attributes
 --------------
-To set attributes of other HTML tags, set an attribute `attrs` holding key /
+To set attributes of other HTML tags, use the attribute `attrs` holding key /
 value pairs as in keyword arguments of Python functions :
 
 ```xml
-<input attrs="value=name">
+<input attrs="value=name, id=record_id">
 ```
 
 For attributes that don't have values, the value associated with the key
@@ -58,7 +58,7 @@ must be a boolean ; if it is set to `True` the attribute is set, if it is
 `False` it is ignored :
 
 ```xml
-<option attrs="selected=value==expected"/>
+<option attrs="selected=value==expected">
 ```
 
 Including templates
@@ -66,7 +66,7 @@ Including templates
 A template can be included inside another one :
 
 ```xml
-<py include="header.html"/>
+<py include="header.html" />
 ```
 
 Using the patrom module
@@ -90,7 +90,7 @@ renders the template file at location `filename` with the keyword arguments
 For instance, if the template file __hello.html__ is
 
 ```xml
-Hello <py expr="name"/> !
+Hello <py expr="name" /> !
 ```
 
 the result of
