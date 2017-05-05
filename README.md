@@ -9,8 +9,7 @@ The engine uses the custom HTML tag `<py>`, and a custom HTML attribute `attrs`.
 
 Code blocks
 -----------
-To insert a block of code, for instance a `for` loop or a condition, the 
-syntax is :
+To insert a code block (loop or condition), the syntax is :
 
 ```xml
 <py code="for i in range(10):">
@@ -23,15 +22,32 @@ syntax is :
 ```xml
 <py code="if condition:">
   ...
-</py><py code="elif condition2:">
+</py>
+<py code="elif condition2:">
   ...
+</py>
+<py code="else:">
+  ...
+</py>
+```
+
+`break` and `continue` can be used inside loops :
+
+```xml
+<py code="for i in range(10):">
+    <py code="if i == 5:">
+        <py code="break" />
+    </py>
 </py>
 
 ```
-Statements
-----------
-For a statement, also use the attribute `code` inside a "start/end" tag, ie
-a tag that ends with `/>` :
+
+Note the use of a self-closing tag (ending with `/>`) for these keywords.
+
+Statements and expressions
+--------------------------
+
+For a statement, also use the attribute `code` inside a self-closing tag:
 
 ```xml
 <py code="x = 5" />
