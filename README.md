@@ -82,7 +82,7 @@ Including templates
 A template can be included inside another one :
 
 ```xml
-<py include="header.html" />
+<py include="header.tmpl" />
 ```
 
 Using the patrom module
@@ -111,7 +111,7 @@ Hello <py expr="name" /> !
 
 the result of
 ```python
-patrom.render("hello.html", name="World")
+patrom.render("hello.tmpl", name="World")
 ```
 is
 ```
