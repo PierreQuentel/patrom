@@ -32,7 +32,7 @@ class TemplateParser(html.parser.HTMLParser):
             # convert_charrefs is only supported by Python 3.4+
             del kw['convert_charrefs']
             html.parser.HTMLParser.__init__(self, *args, **kw)
-            
+
         self.src = '' # Generated Python source code
         self.indent = 0
         self.py_tags = [] # stack of Python blocks
@@ -42,13 +42,13 @@ class TemplateParser(html.parser.HTMLParser):
 
     def _randname(self):
         return ''.join(random.choice(string.ascii_letters) for i in range(8))
-        
+
     def add(self, source, text):
         line, column = self.getpos()
-        self.src += self.indent*'    '+source+'\n'
-        self.pyline += 1+source.count('\n')
+        self.src += self.indent * '    ' + source + '\n'
+        self.pyline += 1 + source.count('\n')
         self.line_mapping[self.pyline] = (line, column, text)
-    
+
     def control(self, source, text):
         """Control that Python source code doesn't include sensible names"""
         reader = io.BytesIO(source.encode('utf-8')).readline
@@ -79,7 +79,7 @@ class TemplateParser(html.parser.HTMLParser):
                     value = value.rstrip()
                     self.control(value, text)
                     self.add(value, text)
-                    self.py_tags.append([value, self.get_starttag_text(), 
+                    self.py_tags.append([value, self.get_starttag_text(),
                         (line, column)])
                     if value.endswith(':'):
                         self.indent += 1
@@ -99,7 +99,7 @@ class TemplateParser(html.parser.HTMLParser):
     def handle_startendtag(self, tag, attrs):
         """Handle a startend tag, ie a tag ending with />"""
         text = self.get_starttag_text()
-    
+
         if tag == self.PY_TAG:
             # tags of the form <py ... /> support 2 attributes :
             # - <py code="..."> : the code is added to the source
@@ -122,7 +122,7 @@ class TemplateParser(html.parser.HTMLParser):
                     self.add('print({}, end="")'.format(value), text)
                 elif name == 'include':
                     has_expr = True
-                    path = os.path.join(os.path.dirname(self.filename), 
+                    path = os.path.join(os.path.dirname(self.filename),
                         value.strip())
                     res = TemplateParser().render(path, **self.kw)
                     if value.strip()=='header.html':
@@ -155,42 +155,46 @@ class TemplateParser(html.parser.HTMLParser):
 
     def handle_data(self, data):
         """Data is printed unchanged"""
-        if data.strip():
-            if not self.tag_stack or self.tag_stack[-1].lower() != "script":
-                data = data.replace('"', "&quot;")
+        if data.strip() or chr(160) in data:
+            data = data.replace('"""', r'\"\"\"')
+            if self.tag_stack and self.tag_stack[-1].lower() == "script":
+                s = 'print(r"""{}""", end="")'.format(data)
+                self.add(s, data)
+                return
+            data = data.replace('"', "&quot;")
             s = 'print("""{}""", end="")'.format(data)
             self.add(s, data)
 
     def handle_decl(self, decl):
         """Declaration is printed unchanged"""
-        self.add('print("""<!{}>""")'.format(decl), decl)     
+        self.add('print("""<!{}>""")'.format(decl), decl)
 
     def handle_attrs(self, tag, attrs, text):
-        """Used for tags other than <py> ; if they have an attribute named 
-        "attrs", its value must be of the form key1=value1, key2=value2... ; 
-        this value is used as argument of dict(), and the resulting dictionary 
+        """Used for tags other than <py> ; if they have an attribute named
+        "attrs", its value must be of the form key1=value1, key2=value2... ;
+        this value is used as argument of dict(), and the resulting dictionary
         is used to generate tag attributes "key1=value1 key2=value2 ...".
         If the value associated with a key is True, only the key is added
         (eg selected=True) ; if it is False, the key is ignored"""
-        
+
         if not 'attrs' in [name for (name, value) in attrs]:
             self.add('print("""{}""", end="")'.format(text), text)
             return
-        
+
         # print tag and key/values except for key=='attrs'
         txt = '<{} '.format(tag)
         simple = ['{}=\\"{}\\"'.format(name, value.replace("'", "\\'"))
             for (name, value) in attrs if name !='attrs']
 
         txt += ' '.join(simple)
-        
+
         self.add('print("{}", end="")'.format(txt), text)
-        
+
         for name, args in attrs:
             if name == 'attrs':
                 key_name = 'key_{}'.format(self._randname())
                 value_name = 'value_{}'.format(self._randname())
-                self.add('for {}, {} in dict({}).items():'.format(key_name, 
+                self.add('for {}, {} in dict({}).items():'.format(key_name,
                     value_name, args), text)
                 self.add('    if not isinstance({}, bool):'.format(value_name), text)
                 self.add('        print("{{}}=\\"{{}}\\" ".format({}, {}),'
@@ -203,12 +207,12 @@ class TemplateParser(html.parser.HTMLParser):
 
     def render(self, filename, **kw):
         """Renders the template located at templates/<filename>
-        
+
         Returns (status, result) where status is 0 if an exception was raised,
         1 otherwise and result is a string with the error message of the
         template render with key/values in kw
         """
-        
+
         self.filename = filename
         self.kw = kw
 
@@ -217,11 +221,11 @@ class TemplateParser(html.parser.HTMLParser):
             # store original traceback
             out = io.StringIO()
             traceback.print_exc(file=out)
-            
+
             # add line in original template file
             tb = sys.exc_info()[2]
             extract = traceback.extract_tb(tb)
-            
+
             if isinstance(exc, TemplateError):
                 line, column, text = exc.line, exc.column, exc.text
             else:
@@ -229,7 +233,7 @@ class TemplateParser(html.parser.HTMLParser):
                     python_line = sys.exc_info()[1].args[1][1]
                 else:
                     python_line = extract[-1][1]
-            
+
                 while python_line and python_line not in self.line_mapping:
                     python_line -= 1
                 line, column, text = self.line_mapping[python_line]
@@ -240,22 +244,22 @@ class TemplateParser(html.parser.HTMLParser):
         # the generated Python code uses "print" to produce the result, so we
         # redirect sys.stdout
         save_stdout = sys.stdout
-        
+
         # get template source code
         with open(filename, encoding="utf-8") as fobj:
             tmpl_source = fobj.read()
-        
+
         try:
             self.feed(tmpl_source)
             self.close()
-            
+
             if self.py_tags: # unclosed <py> tags
                 value, text, (line, column) = self.py_tags.pop()
                 msg = "Unclosed py tag line {} column {} : {}"
                 raise TemplateError(msg, self, text)
-        
+
             sys.stdout = io.StringIO() # redirect sys.stdout
-            
+
             trace = 'trace.py'
             with open(trace, 'w', encoding='utf-8') as out:
                 out.write(self.src)
@@ -270,8 +274,7 @@ class TemplateParser(html.parser.HTMLParser):
 
         finally:
             sys.stdout = save_stdout
-        
-        
+
+
 def render(filename, **kw):
     return TemplateParser().render(filename, **kw)
-    
